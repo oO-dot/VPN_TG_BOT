@@ -1,0 +1,19 @@
+telegram-bot:
+  username: ${BOT_USERNAME}
+  token: ${BOT_TOKEN}
+  path: https://9j0kdz-188-126-45-46.ru.tuna.am # use tuna/ngrok example: https://va7k7g-188-126-45-46.ru.tuna.am
+
+# DB tutor-bot
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+    url: ${DATASOURCE_URL}
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+server:
+  port: 8080
