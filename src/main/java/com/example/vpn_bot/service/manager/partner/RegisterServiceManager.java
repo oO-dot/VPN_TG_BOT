@@ -29,21 +29,34 @@ public class RegisterServiceManager extends AbstractManager {
     @Override
     public BotApiMethod<?> answerCommand(Message message, Bot bot) {
         Long chatId = message.getChatId();
-        String[] parts = message.getText().split("\\s+", 3);
+        String[] parts = message.getText().split("\\s+", 4);
 
         // Проверка формата команды
-        if (parts.length < 3) {
+        if (parts.length < 4) {
             return methodFactory.getSendMessage(
                     chatId,
                     "❌ Неверный формат команды.\n" +
-                            "Используйте: /register_service <название_сервиса> <Tonkeeper_Кошелек>\n" +
-                            "Пример: /register_service MyVPNService 0x4f...f2",
+                            "Используйте: /register_service <Название> <Tonkeeper_Кошелек> <Стоимость>\n" +
+                            "Пример: /register_service MyVPNService 0x4f...f2, 10.5",
                     null
             );
         }
 
         String serviceName = parts[1];
         String tonkeeperWallet = parts[2];
+        String priceStr = parts[3];
+
+        Double yearlyPrice;
+        try {
+            yearlyPrice = Double.parseDouble(priceStr);
+        } catch (NumberFormatException e) {
+            return methodFactory.getSendMessage(
+                    chatId,
+                    "❌ Стоимость должна быть числом. Пример: 10.5",
+                    null
+            );
+        }
+
         String serviceCode = "svc_" + UUID.randomUUID().toString().substring(0, 8); // Генерация уникального кода
 
         try {
@@ -51,7 +64,8 @@ public class RegisterServiceManager extends AbstractManager {
                     serviceName,
                     chatId,
                     serviceCode,
-                    tonkeeperWallet
+                    tonkeeperWallet,
+                    yearlyPrice
             );
 
             // Генерация реферальной ссылки
@@ -62,6 +76,7 @@ public class RegisterServiceManager extends AbstractManager {
                     "✅ Сервис зарегистрирован!\n" +
                             "Название: " + serviceName + "\n" +
                             "Кошелек Tonkeeper: " + tonkeeperWallet + "\n\n" +
+                            "Стоимость годовой подписки: " + yearlyPrice + " USD\n\n" +
                             "Реферальная ссылка:\n" + referralLink,
                     null
             );

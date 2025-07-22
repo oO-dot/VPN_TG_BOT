@@ -66,13 +66,14 @@ public class PaymentManager extends AbstractManager {
 
     public BotApiMethod<?> initiatePayment(Long chatId, CallbackQuery callbackQuery) {
         User user = userRepo.findById(chatId).orElseThrow();
+        user.setSelectedPeriod(12); // Устанавливаем период 12 месяцев (год)
         String walletAddress;
         String currency;
 
         if (user.getPartnerService() != null) {
             PartnerService service = user.getPartnerService();
             walletAddress = service.getTonkeeperWallet();
-            currency = "TON";
+            currency = "USDT";
         } else {
             CryptoWallet wallet = cryptoWalletRepo.findRandomWallet();
             walletAddress = wallet.getWalletAddress();

@@ -15,13 +15,15 @@ public class PartnerServiceManager {
     public PartnerService registerService(String serviceName,
                                           Long adminChatId,
                                           String serviceCode,
-                                          String tonkeeperWallet) {
+                                          String tonkeeperWallet,
+                                          Double yearlyPrice) {
 
         PartnerService service = new PartnerService();
         service.setServiceName(serviceName);
         service.setAdminChatId(adminChatId);
         service.setServiceCode(serviceCode); // Устанавливаем код
         service.setTonkeeperWallet(tonkeeperWallet); // Сохраняем кошелек
+        service.setYearlyPrice(yearlyPrice); // Сохраняем стоимость
         service.setClientsCount(0);
 
         return partnerServiceRepo.save(service);

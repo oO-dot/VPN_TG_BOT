@@ -65,8 +65,6 @@ public class AdminManager extends AbstractManager {
 
         Long targetChatId = user.getPartnerService().getAdminChatId();
 
-        // if (targetChatId == null) return; // Если сервис не привязан - не отправляем
-
         String text = "🔔 *Новый платеж!*\n\n" +
                 "👤 Пользователь: " + user.getDetails().getFirstName() + "\n" +
                 "💳 Сумма: " + user.getPaymentAmount() + " USDT\n" +
@@ -127,10 +125,27 @@ public class AdminManager extends AbstractManager {
             return new RuntimeException("User not found");
         });
 
+        int months = user.getSelectedPeriod();
+        LocalDateTime now = LocalDateTime.now();
+
+        // Логика продления подписки
+        if (user.getSubscriptionEnd() != null && user.getSubscriptionEnd().isAfter(now)) {
+            // Если подписка активна - продлеваем с текущей даты окончания
+            user.setSubscriptionEnd(user.getSubscriptionEnd().plusMonths(months));
+        } else if (user.getSubscriptionEnd() != null && user.getSubscriptionEnd().isBefore(now)) {
+            // Если подписка истекла - начинаем новую с текущей даты
+            user.setSubscriptionStart(now);
+            user.setSubscriptionEnd(now.plusMonths(months));
+        } else {
+            // Новая подписка
+            user.setSubscriptionStart(now);
+            user.setSubscriptionEnd(now.plusMonths(months));
+        }
+
         // Обновляем статус пользователя
         user.setAction(Action.PAYMENT_CONFIRMED);
         // Устанавливаем дату окончания подписки
-        user.setSubscriptionEnd(LocalDateTime.now().plusMonths(user.getSelectedPeriod()));
+        //user.setSubscriptionEnd(LocalDateTime.now().plusMonths(user.getSelectedPeriod()));
         userRepo.save(user);
 
         System.out.println("🔵 Found user: " + user.getChatId() +
@@ -147,8 +162,8 @@ public class AdminManager extends AbstractManager {
         String confirmationText = "✅ *Платеж подтвержден!*\n\n" +
                 "👤 Пользователь: " + user.getDetails().getFirstName() + "\n" +
                 "🆔 ID: `" + user.getChatId() + "`\n" +
-                "📅 Подписка активна до: " +
-                user.getSubscriptionEnd().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+                "📅 Дата начала подписки: " + user.getSubscriptionStart().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + "\n" +
+                "📅 Дата окончания подписки: " + user.getSubscriptionEnd().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
 
         // Возвращаем обновленное сообщение (убираем кнопки)
         return methodFactory.getEditeMessageText(

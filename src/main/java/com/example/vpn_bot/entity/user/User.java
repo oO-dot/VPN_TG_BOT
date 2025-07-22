@@ -44,15 +44,20 @@ public class User {
     @Column(name = "wallet_address")
     String walletAddress; // Крипто-кошелек для оплаты
 
+    @Column(name = "subscription_start")
+    LocalDateTime subscriptionStart; // Новое поле: дата начала подписки
+
     @Column(name = "subscription_end")
     LocalDateTime subscriptionEnd; // Дата окончания подписки
 
     @Column(name = "wireguard_config", columnDefinition = "TEXT")
-    private String wireguardConfig; // Хранение конфигурации
+    String wireguardConfig; // Хранение конфигурации
 
     @ManyToOne
     @JoinColumn(name = "partner_service_id")
-    private PartnerService partnerService;
+    PartnerService partnerService;
+
+
 
     @PrePersist
     private void generateUniqueToken() {

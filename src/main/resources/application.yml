@@ -1,7 +1,7 @@
 telegram-bot:
   username: ${BOT_USERNAME}
   token: ${BOT_TOKEN}
-  path: https://61w255-188-126-45-46.ru.tuna.am # use tuna/ngrok example: https://va7k7g-188-126-45-46.ru.tuna.am
+  path: https://ig10q8-188-126-45-46.ru.tuna.am # use tuna/ngrok example: https://va7k7g-188-126-45-46.ru.tuna.am
 
 # DB tutor-bot
 spring:

@@ -11,9 +11,6 @@ public class CallbackData {
     public static final String BACK_START = "back";
 
     // Выбор периода
-    public static final String CHANGE_PERIOD_1 = "change_period_1";
-    public static final String CHANGE_PERIOD_3 = "change_period_3";
-    public static final String CHANGE_PERIOD_6 = "change_period_6";
     public static final String CHANGE_PERIOD_12 = "change_period_12";
 
     // Оплата

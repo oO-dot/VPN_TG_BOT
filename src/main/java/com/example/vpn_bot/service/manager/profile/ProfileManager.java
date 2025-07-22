@@ -99,7 +99,16 @@ public class ProfileManager extends AbstractManager {
         text.append("\n▪\uFE0FВаш id - ").append(details.getId());
         text.append("\n▪\uFE0FДата регистрации - ").append(details.getRegisteredAt());
         text.append("\n▪\uFE0FРоль - ").append(user.getRole().name());
-        text.append("\n▪\uFE0FПодписка - ").append(user.getAction().name());
+        text.append("\n▪\uFE0FСтатус подписки - ").append(user.getAction().name());
+        if (user.getAction() == Action.PAYMENT_CONFIRMED &&
+                user.getSubscriptionStart() != null &&
+                user.getSubscriptionEnd() != null) {
+            text.append("\n▪\uFE0FДата начала подписки: ")
+                    .append(user.getSubscriptionStart().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")))
+                    .append("\n▪\uFE0FДата окончания подписки: ")
+                    .append(user.getSubscriptionEnd().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")));
+        }
+
         text.append("\n▪\uFE0FВаш уникальный токен - \n").append(user.getToken().toString());
         text.append("\n\n\uFE0F - токен нужен при обращении в тех поддержку, скопируйте и вставьте свой токен, далее опишите проблему при ее возникновении.");
 
@@ -142,7 +151,12 @@ public class ProfileManager extends AbstractManager {
         text.append("\n▪\uFE0FДата регистрации - ").append(details.getRegisteredAt());
 
         text.append("\n▪\uFE0FРоль - ").append(user.getRole().name());
-        text.append("\n▪\uFE0FПодписка - ").append(user.getAction().name());
+        if (user.getAction() == Action.PAYMENT_CONFIRMED) {
+            text.append("\n▪\uFE0FДата начала подписки: ")
+                    .append(user.getSubscriptionStart().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")))
+                    .append("\n▪\uFE0FДата окончания подписки: ")
+                    .append(user.getSubscriptionEnd().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")));
+        }
         text.append("\n▪\uFE0FВаш уникальный токен - \n").append(user.getToken().toString());
 
         text.append("\n\n\uFE0F - токен нужен при обращении в тех поддержку, скопируйте и вставьте свой токен, далее опишите проблему при ее возникновении.");
@@ -161,14 +175,25 @@ public class ProfileManager extends AbstractManager {
                 chatId,
                 "✅ Ваша конфигурация готова!\n" +
                         "Скачайте файл: " + vpnConfigStubUrl + "\n\n" +
-                        "Инструкция по установке:\n" +
-                        "1. Скачайте приложение WireGuard\n" +
-                        "2. Импортируйте этот конфиг\n" +
-                        "3. Активируйте подключение",
-                null
+                        """
+                        Инструкция по подключению VPN:
+                        1. Нажмите "Скачать VPN конфиг" в боте
+                        2. Скопируйте всю ссылку из сообщения
+                        3. Откройте V2RayTun
+                        4. Нажмите "+" в верхнем правом углу → "Добавить из буфера обмена"
+                        5. Запустите подключение
+                        
+                        Скачать V2RayTun для:
+                        iOS: https://apps.apple.com/ru/app/v2raytun/id6476628951
+                        Android: https://play.google.com/store/apps/details?id=com.v2raytun
+                        """,
+                keyboardFactory.getInlineKeyboard(
+                        List.of("Назад"),
+                        List.of(1),
+                        List.of(BACK_START)
+                )
         );
     }
-
 
     private BotApiMethod<?> showProfile(Message message) {
 

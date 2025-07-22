@@ -80,7 +80,7 @@ public class CallbackQueryHandler {
             case PAYMENT_CONFIRMED -> {
                 return paymentManager.answerCallbackQuery(callbackQuery, bot);
             }
-            case CHANGE_PERIOD_1, CHANGE_PERIOD_3, CHANGE_PERIOD_6, CHANGE_PERIOD_12 -> {
+            case CHANGE_PERIOD_12 -> {
                 return changePeriodManager.answerCallbackQuery(callbackQuery, bot);
             }
             case GET_VPN_CONFIG -> {

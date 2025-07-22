@@ -114,7 +114,7 @@ public class StartManager extends AbstractManager {
                         📝 Подробная инструкция по вставке QR-code через приложение WireGuard КЛИК ⬇️ .
                         """,
                 keyboardFactory.getInlineKeyboard(
-                        List.of("Выбрать период пользования VPN", "Инструкция по вставке QR-code через WireGuard", "Профиль", "Помощь", "Обратная связь"),
+                        List.of("Оформить подписку на 1 год", "Инструкция по вставке QR-code через WireGuard", "Профиль", "Помощь", "Обратная связь"),
                         List.of(1, 1, 1, 2),
                         List.of(CHANGE_PERIOD, INSTRUCTION, PROFILE, HELP, FEEDBACK ) // сделать CHANGE_PERIOD, PROFILE
                 )
@@ -140,7 +140,7 @@ public class StartManager extends AbstractManager {
                         📝 Подробная инструкция по вставке QR-code через приложение WireGuard КЛИК ⬇️ .
                         """,
                 keyboardFactory.getInlineKeyboard(
-                        List.of("Выбрать период пользования VPN", "Инструкция по вставке QR-code через WireGuard", "Профиль", "Помощь", "Обратная связь"),
+                        List.of("Оформить подписку на 1 год", "Инструкция по вставке QR-code через WireGuard", "Профиль", "Помощь", "Обратная связь"),
                         List.of(1, 1, 1, 2),
                         List.of(CHANGE_PERIOD, INSTRUCTION, PROFILE, HELP, FEEDBACK ) // сделать CHANGE_PERIOD, PROFILE
                 )
