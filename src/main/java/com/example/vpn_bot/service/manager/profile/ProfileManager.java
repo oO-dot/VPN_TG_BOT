@@ -56,15 +56,16 @@ public class ProfileManager extends AbstractManager {
         List<String> buttonTexts = new ArrayList<>();
         List<String> callbackDatas = new ArrayList<>();
 
-        // Всегда добавляем кнопку "Назад"
-        buttonTexts.add("Назад");
-        callbackDatas.add(BACK_START);
-
         // Добавляем VPN-кнопку только для подтвержденных платежей
         if (user.getAction() == Action.PAYMENT_CONFIRMED) {
             buttonTexts.add("Скачать VPN конфиг");
             callbackDatas.add(GET_VPN_CONFIG);
         }
+
+        // Всегда добавляем кнопку "Назад"
+        buttonTexts.add("Назад");
+        callbackDatas.add(BACK_START);
+
 
         // Создаем конфигурацию рядов (по 1 кнопке в каждом ряду)
         List<Integer> rowLayout = new ArrayList<>();
@@ -108,7 +109,6 @@ public class ProfileManager extends AbstractManager {
                 createProfileKeyboard(user)  // Используем общий метод для создания клавиатуры
         );
 
-        //  return showProfile(message);
     }
 
 

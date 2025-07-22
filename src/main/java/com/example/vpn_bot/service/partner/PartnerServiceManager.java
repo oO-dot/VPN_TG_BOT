@@ -12,12 +12,18 @@ public class PartnerServiceManager {
 
     private final PartnerServiceRepo partnerServiceRepo;
 
-    public PartnerService registerService(String serviceName, Long adminChatId, String serviceCode) {
+    public PartnerService registerService(String serviceName,
+                                          Long adminChatId,
+                                          String serviceCode,
+                                          String tonkeeperWallet) {
+
         PartnerService service = new PartnerService();
         service.setServiceName(serviceName);
         service.setAdminChatId(adminChatId);
         service.setServiceCode(serviceCode); // Устанавливаем код
+        service.setTonkeeperWallet(tonkeeperWallet); // Сохраняем кошелек
         service.setClientsCount(0);
+
         return partnerServiceRepo.save(service);
     }
 

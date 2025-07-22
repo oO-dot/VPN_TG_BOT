@@ -1,5 +1,6 @@
 package com.example.vpn_bot.service.manager.payment;
 
+import com.example.vpn_bot.entity.partner.PartnerService;
 import com.example.vpn_bot.entity.payment.CryptoWallet;
 import com.example.vpn_bot.entity.user.Action;
 import com.example.vpn_bot.entity.user.User;
@@ -65,19 +66,30 @@ public class PaymentManager extends AbstractManager {
 
     public BotApiMethod<?> initiatePayment(Long chatId, CallbackQuery callbackQuery) {
         User user = userRepo.findById(chatId).orElseThrow();
-        CryptoWallet wallet = cryptoWalletRepo.findRandomWallet();
+        String walletAddress;
+        String currency;
+
+        if (user.getPartnerService() != null) {
+            PartnerService service = user.getPartnerService();
+            walletAddress = service.getTonkeeperWallet();
+            currency = "TON";
+        } else {
+            CryptoWallet wallet = cryptoWalletRepo.findRandomWallet();
+            walletAddress = wallet.getWalletAddress();
+            currency = wallet.getCurrency();
+        }
 
         user.setAction(Action.AWAITING_PAYMENT);
-        user.setWalletAddress(wallet.getWalletAddress());
+        user.setWalletAddress(walletAddress);
         userRepo.save(user);
 
-        adminManager.notifyNewPayment(user, wallet.getWalletAddress());
+        adminManager.notifyNewPayment(user, walletAddress, currency);
 
         return methodFactory.getEditeMessageText(
                 callbackQuery,
-                "💳 Оплатите " + user.getPaymentAmount() + " USDT\n\n" +
-                        "На кошелек: " + wallet.getWalletAddress() + "\n" +
-                        "Сеть: " + wallet.getCurrency() + "\n\n" +
+                "💳 Оплатите " + user.getPaymentAmount() + " USD\n\n" +
+                        "На кошелек: " + walletAddress + "\n" +
+                        "Сеть: " + currency + "\n\n" +
                         "После оплаты нажмите кнопку ниже ⬇️",
                 keyboardFactory.getInlineKeyboard(
                         List.of("✅ Я оплатил"),

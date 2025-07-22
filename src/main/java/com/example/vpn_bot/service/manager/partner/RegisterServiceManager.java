@@ -1,6 +1,7 @@
 package com.example.vpn_bot.service.manager.partner;
 
 
+import com.example.vpn_bot.entity.partner.PartnerService;
 import com.example.vpn_bot.service.factory.AnswerMethodFactory;
 import com.example.vpn_bot.service.manager.AbstractManager;
 import com.example.vpn_bot.service.partner.PartnerServiceManager;
@@ -28,34 +29,40 @@ public class RegisterServiceManager extends AbstractManager {
     @Override
     public BotApiMethod<?> answerCommand(Message message, Bot bot) {
         Long chatId = message.getChatId();
-        String[] parts = message.getText().split(" ", 2);
+        String[] parts = message.getText().split("\\s+", 3);
 
         // Проверка формата команды
-        if (parts.length < 2) {
+        if (parts.length < 3) {
             return methodFactory.getSendMessage(
                     chatId,
                     "❌ Неверный формат команды.\n" +
-                            "Используйте: /register_service <название_сервиса>\n" +
-                            "Пример: /register_service MyVPNService",
+                            "Используйте: /register_service <название_сервиса> <Tonkeeper_Кошелек>\n" +
+                            "Пример: /register_service MyVPNService 0x4f...f2",
                     null
             );
         }
 
-        String serviceName = parts[1].trim();
-        String serviceCode = generateUniqueCode();
+        String serviceName = parts[1];
+        String tonkeeperWallet = parts[2];
+        String serviceCode = "svc_" + UUID.randomUUID().toString().substring(0, 8); // Генерация уникального кода
 
         try {
-            partnerServiceManager.registerService(serviceName, chatId, serviceCode);
+            PartnerService service = partnerServiceManager.registerService(
+                    serviceName,
+                    chatId,
+                    serviceCode,
+                    tonkeeperWallet
+            );
 
             // Генерация реферальной ссылки
             String referralLink = "https://t.me/" + botUsername + "?start=" + serviceCode;
 
             return methodFactory.getSendMessage(
                     chatId,
-                    "✅ Сервис '" + serviceName + "' успешно зарегистрирован!\n\n" +
-                            "Реферальная ссылка для привлечения клиентов:\n" +
-                            referralLink + "\n\n" +
-                            "Теперь все подтвержденные платежи в этом чате будут учитываться в статистике сервиса.",
+                    "✅ Сервис зарегистрирован!\n" +
+                            "Название: " + serviceName + "\n" +
+                            "Кошелек Tonkeeper: " + tonkeeperWallet + "\n\n" +
+                            "Реферальная ссылка:\n" + referralLink,
                     null
             );
         } catch (Exception e) {
@@ -65,11 +72,6 @@ public class RegisterServiceManager extends AbstractManager {
                     null
             );
         }
-    }
-
-    // Генерация уникального кода
-    private String generateUniqueCode() {
-        return "svc_" + UUID.randomUUID().toString().substring(0, 8);
     }
 
     @Override

@@ -34,7 +34,16 @@ public class InstructionManager extends AbstractManager {
         return methodFactory.getSendMessage(
                 message.getChatId(),
                 """
-                        Здесь будет инструкция по вставке QR-code через WireGuard
+                        Инструкция по подключению VPN:
+                        1. Нажмите "Скачать VPN конфиг" в боте
+                        2. Скопируйте всю ссылку из сообщения
+                        3. Откройте V2RayTun
+                        4. Нажмите "+" в верхнем правом углу → "Добавить из буфера обмена"
+                        5. Запустите подключение
+                        
+                        Скачать V2RayTun для:
+                        iOS: https://apps.apple.com/ru/app/v2raytun/id6476628951
+                        Android: https://play.google.com/store/apps/details?id=com.v2raytun
                         """,
                 keyboardFactory.getInlineKeyboard(
                         List.of("Назад"),
@@ -54,7 +63,16 @@ public class InstructionManager extends AbstractManager {
         return methodFactory.getEditeMessageText(
                 callbackQuery,
                 """
-                        Здесь будет инструкция по вставке QR-code через WireGuard
+                        Инструкция по подключению VPN:
+                        1. Нажмите "Скачать VPN конфиг" в боте
+                        2. Скопируйте всю ссылку из сообщения
+                        3. Откройте V2RayTun
+                        4. Нажмите "+" в верхнем правом углу → "Добавить из буфера обмена"
+                        5. Запустите подключение
+                        
+                        Скачать V2RayTun для:
+                        iOS: https://apps.apple.com/ru/app/v2raytun/id6476628951
+                        Android: https://play.google.com/store/apps/details?id=com.v2raytun
                         """,
                 keyboardFactory.getInlineKeyboard(
                         List.of("Назад"),

@@ -11,7 +11,6 @@ import com.example.vpn_bot.telegram.Bot;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -57,7 +56,7 @@ public class AdminManager extends AbstractManager {
      * @param user Пользователь, совершивший платеж
      * @param walletAddress Адрес кошелька для оплаты
      */
-    public void notifyNewPayment(User user, String walletAddress) {
+    public void notifyNewPayment(User user, String walletAddress, String currency) {
         // Проверяем, что пользователь привязан к сервису
         if (user.getPartnerService() == null) {
             System.err.println("⚠️ User has no partner service: " + user.getChatId());
@@ -71,6 +70,7 @@ public class AdminManager extends AbstractManager {
         String text = "🔔 *Новый платеж!*\n\n" +
                 "👤 Пользователь: " + user.getDetails().getFirstName() + "\n" +
                 "💳 Сумма: " + user.getPaymentAmount() + " USDT\n" +
+                "💱 Валюта: " + currency + "\n" +
                 "🔗 Кошелек: `" + walletAddress + "`\n" +
                 "🆔 ID: `" + user.getChatId() + "`";
 
@@ -135,6 +135,13 @@ public class AdminManager extends AbstractManager {
 
         System.out.println("🔵 Found user: " + user.getChatId() +
                 " | Current status: " + user.getAction());
+
+        // Увеличиваем счетчик клиентов сервиса
+        if (user.getPartnerService() != null) {
+            partnerServiceManager.incrementClientCount(
+                    user.getPartnerService().getAdminChatId()
+            );
+        }
 
         // Формируем сообщение об успешном подтверждении
         String confirmationText = "✅ *Платеж подтвержден!*\n\n" +

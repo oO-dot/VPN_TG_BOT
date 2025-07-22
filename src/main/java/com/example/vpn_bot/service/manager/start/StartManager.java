@@ -1,7 +1,10 @@
 package com.example.vpn_bot.service.manager.start;
 
 import com.example.vpn_bot.entity.partner.PartnerService;
+import com.example.vpn_bot.entity.user.Action;
+import com.example.vpn_bot.entity.user.Role;
 import com.example.vpn_bot.entity.user.User;
+import com.example.vpn_bot.entity.user.UserDetails;
 import com.example.vpn_bot.repository.PartnerServiceRepo;
 import com.example.vpn_bot.repository.UserRepo;
 import com.example.vpn_bot.service.factory.AnswerMethodFactory;
@@ -17,6 +20,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.example.vpn_bot.service.data.CallbackData.*;
@@ -42,20 +46,41 @@ public class StartManager extends AbstractManager {
     @Override
     public BotApiMethod<?> answerCommand(Message message, Bot bot) {
         Long chatId = message.getChatId();
-        User user = userRepo.findById(chatId).orElseThrow();
+        User user = userRepo.findById(chatId).orElseGet(() -> createNewUser(message));
 
         // Обработка реферального кода
         String[] commandParts = message.getText().split("\\s+");
         if (commandParts.length > 1) {
             String serviceCode = commandParts[1];
             PartnerService service = partnerServiceRepo.findByServiceCode(serviceCode);
+
             if (service != null) {
                 user.setPartnerService(service);
                 userRepo.save(user);
             }
+
         }
 
         return createStartMessage(chatId);
+    }
+
+    private User createNewUser(Message message) {
+        User user = new User();
+        user.setChatId(message.getChatId());
+
+        UserDetails details = new UserDetails();
+        details.setFirstName(message.getFrom().getFirstName());
+        details.setLastName(message.getFrom().getLastName());
+        details.setUsername(message.getFrom().getUserName());
+        details.setRegisteredAt(LocalDateTime.now());
+
+        user.setDetails(details);
+        details.setUser(user);
+
+        user.setRole(Role.USER);
+        user.setAction(Action.FREE);
+
+        return userRepo.save(user);
     }
 
 

@@ -26,4 +26,8 @@ public class PartnerService {
     @Column(nullable = false, unique = true)
     private String serviceCode;  // Уникальный код для реферальных ссылок
 
+    // Новое поле для кошелька Tonkeeper
+    @Column(nullable = false, name = "tonkeeper_wallet")
+    private String tonkeeperWallet;
+
 }
