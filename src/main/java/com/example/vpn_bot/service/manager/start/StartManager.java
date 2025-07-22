@@ -1,5 +1,9 @@
 package com.example.vpn_bot.service.manager.start;
 
+import com.example.vpn_bot.entity.partner.PartnerService;
+import com.example.vpn_bot.entity.user.User;
+import com.example.vpn_bot.repository.PartnerServiceRepo;
+import com.example.vpn_bot.repository.UserRepo;
 import com.example.vpn_bot.service.factory.AnswerMethodFactory;
 import com.example.vpn_bot.service.factory.KeyboardFactory;
 import com.example.vpn_bot.service.manager.AbstractManager;
@@ -22,17 +26,55 @@ import static com.example.vpn_bot.service.data.CallbackData.*;
 public class StartManager extends AbstractManager {
     final AnswerMethodFactory methodFactory;
     final KeyboardFactory keyboardFactory;
+    final PartnerServiceRepo partnerServiceRepo;
+    final UserRepo userRepo;
 
     @Autowired
     public StartManager(AnswerMethodFactory methodFactory,
-                        KeyboardFactory keyboardFactory) {
+                        KeyboardFactory keyboardFactory,
+                        PartnerServiceRepo partnerServiceRepo,
+                        UserRepo userRepo) {
         this.methodFactory = methodFactory;
         this.keyboardFactory = keyboardFactory;
+        this.partnerServiceRepo = partnerServiceRepo;
+        this.userRepo = userRepo;
     }
     @Override
-    public SendMessage answerCommand(Message message, Bot bot) {
+    public BotApiMethod<?> answerCommand(Message message, Bot bot) {
+        Long chatId = message.getChatId();
+        User user = userRepo.findById(chatId).orElseThrow();
+
+        // Обработка реферального кода
+        String[] commandParts = message.getText().split("\\s+");
+        if (commandParts.length > 1) {
+            String serviceCode = commandParts[1];
+            PartnerService service = partnerServiceRepo.findByServiceCode(serviceCode);
+            if (service != null) {
+                user.setPartnerService(service);
+                userRepo.save(user);
+            }
+        }
+
+        return createStartMessage(chatId);
+    }
+
+
+
+    @Override
+    public BotApiMethod<?> answerMessage(Message message, Bot bot) {
+        return null;
+    }
+
+    @Override
+    public BotApiMethod<?> answerCallbackQuery(CallbackQuery callbackQuery, Bot bot) {
+        return createEditMessage(callbackQuery);
+    }
+
+
+    private BotApiMethod<?> createStartMessage(Long chatId) {
+
         return methodFactory.getSendMessage(
-                message.getChatId(),
+                chatId,
                 """
                         🖖 Вас приветствует VPN_BOOSTER, лучший VPN для работы за границей или просмотра Instagram, YouTube, а также других развлекательных целей и не только!
                         
@@ -52,16 +94,11 @@ public class StartManager extends AbstractManager {
                         List.of(CHANGE_PERIOD, INSTRUCTION, PROFILE, HELP, FEEDBACK ) // сделать CHANGE_PERIOD, PROFILE
                 )
         );
+
     }
 
+    private BotApiMethod<?> createEditMessage(CallbackQuery callbackQuery) {
 
-    @Override
-    public BotApiMethod<?> answerMessage(Message message, Bot bot) {
-        return null;
-    }
-
-    @Override
-    public BotApiMethod<?> answerCallbackQuery(CallbackQuery callbackQuery, Bot bot) {
         return methodFactory.getEditeMessageText(
                 callbackQuery,
                 """
@@ -83,6 +120,7 @@ public class StartManager extends AbstractManager {
                         List.of(CHANGE_PERIOD, INSTRUCTION, PROFILE, HELP, FEEDBACK ) // сделать CHANGE_PERIOD, PROFILE
                 )
         );
+
     }
 
 }

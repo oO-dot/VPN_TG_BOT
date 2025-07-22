@@ -4,6 +4,7 @@ import com.example.vpn_bot.service.UpdateDispatcher;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -17,7 +18,7 @@ public class Bot extends TelegramWebhookBot {
 
     @Autowired
     public Bot(TelegramProperties telegramProperties,
-               UpdateDispatcher updateDispatcher) {
+               @Lazy UpdateDispatcher updateDispatcher) {
         super(telegramProperties.getToken());
         this.telegramProperties = telegramProperties;
         this.updateDispatcher = updateDispatcher;

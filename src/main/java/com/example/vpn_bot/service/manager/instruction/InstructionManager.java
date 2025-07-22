@@ -20,7 +20,6 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class InstructionManager extends AbstractManager {
 
-    //TODO
     final AnswerMethodFactory methodFactory;
     final KeyboardFactory keyboardFactory;
 

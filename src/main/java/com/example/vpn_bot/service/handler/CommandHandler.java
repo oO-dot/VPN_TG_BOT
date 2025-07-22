@@ -4,6 +4,9 @@ import com.example.vpn_bot.service.manager.change_period.ChangePeriodManager;
 import com.example.vpn_bot.service.manager.feedback.FeedbackManager;
 import com.example.vpn_bot.service.manager.help.HelpManager;
 import com.example.vpn_bot.service.manager.instruction.InstructionManager;
+import com.example.vpn_bot.service.manager.partner.PartnerStatsManager;
+import com.example.vpn_bot.service.manager.partner.RegisterServiceManager;
+import com.example.vpn_bot.service.manager.payment.PaymentManager;
 import com.example.vpn_bot.service.manager.profile.ProfileManager;
 import com.example.vpn_bot.service.manager.start.StartManager;
 import com.example.vpn_bot.telegram.Bot;
@@ -16,6 +19,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 
+import static com.example.vpn_bot.service.data.CallbackData.PAYMENT_CONFIRMED;
 import static com.example.vpn_bot.service.data.Command.*;
 
 @Service
@@ -27,24 +31,35 @@ public class CommandHandler {
     final InstructionManager instructionManager;
     final ChangePeriodManager changePeriodManager;
     final ProfileManager profileManager;
+    final PaymentManager paymentManager;
+    final RegisterServiceManager registerServiceManager;
+    final PartnerStatsManager partnerStatsManager;
     @Autowired
     public CommandHandler(FeedbackManager feedbackManager,
                           HelpManager helpManager,
                           StartManager startManager,
                           InstructionManager instructionManager,
                           ChangePeriodManager changePeriodManager,
-                          ProfileManager profileManager) {
+                          ProfileManager profileManager,
+                          PaymentManager paymentManager,
+                          RegisterServiceManager registerServiceManager,
+                          PartnerStatsManager partnerStatsManager
+    ) {
         this.feedbackManager = feedbackManager;
         this.helpManager = helpManager;
         this.startManager = startManager;
         this.instructionManager = instructionManager;
         this.changePeriodManager = changePeriodManager;
         this.profileManager = profileManager;
+        this.paymentManager = paymentManager;
+        this.registerServiceManager = registerServiceManager;
+        this.partnerStatsManager = partnerStatsManager;
     }
 
     public BotApiMethod<?> answer(Message message, Bot bot) {
         String command = message.getText();
-        switch (command) {
+        String baseCommand = command.split(" ")[0]; // Для команд с аргументами
+        switch (baseCommand) {
             case START -> {
                 return startManager.answerCommand(message, bot);
             }
@@ -63,10 +78,21 @@ public class CommandHandler {
             case PROFILE -> {
                 return profileManager.answerCommand(message, bot);
             }
+            case PAYMENT_CONFIRMED -> {
+                return paymentManager.answerCommand(message, bot);
+            }
+            case "/register_service" -> {
+                return registerServiceManager.answerCommand(message, bot);
+            }
+            case "/mystats" -> {
+                return partnerStatsManager.answerCommand(message, bot);
+            }
             default -> {
                 return defaultAnswer(message);
             }
         }
+
+
     }
 
     private BotApiMethod<?> defaultAnswer(Message message) {

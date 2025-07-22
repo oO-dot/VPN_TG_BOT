@@ -10,9 +10,9 @@
     </parent>
 
     <groupId>com.example</groupId>
-    <artifactId>tutor-bot</artifactId>
+    <artifactId>vpn_bot</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>tutor-bot</name>
+    <name>vpn_bot</name>
     <description>Telegram bots tutor</description>
 
     <url/>
@@ -71,6 +71,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
 
     </dependencies>

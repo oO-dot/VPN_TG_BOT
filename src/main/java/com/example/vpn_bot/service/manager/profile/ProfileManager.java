@@ -1,6 +1,10 @@
 package com.example.vpn_bot.service.manager.profile;
 
+import com.example.vpn_bot.entity.user.Action;
+import com.example.vpn_bot.entity.user.User;
 import com.example.vpn_bot.repository.UserRepo;
+import com.example.vpn_bot.service.WireGuardConfigService;
+import com.example.vpn_bot.service.data.CallbackData;
 import com.example.vpn_bot.service.factory.AnswerMethodFactory;
 import com.example.vpn_bot.service.factory.KeyboardFactory;
 import com.example.vpn_bot.service.manager.AbstractManager;
@@ -8,16 +12,23 @@ import com.example.vpn_bot.telegram.Bot;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.example.vpn_bot.service.data.CallbackData.BACK_START;
+import static com.example.vpn_bot.service.data.CallbackData.GET_VPN_CONFIG;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -27,18 +38,77 @@ public class ProfileManager extends AbstractManager {
     final UserRepo userRepo;
     final KeyboardFactory keyboardFactory;
 
+    @Value("${vpn.config.stub-url}")  // Инжектим значение из application.yml
+    private String vpnConfigStubUrl;
+
     @Autowired
     public ProfileManager(AnswerMethodFactory methodFactory,
                           UserRepo userRepo,
-                          KeyboardFactory keyboardFactory) {
+                          KeyboardFactory keyboardFactory
+    ) {
         this.methodFactory = methodFactory;
         this.userRepo = userRepo;
         this.keyboardFactory = keyboardFactory;
     }
 
+    // Общий метод для создания клавиатуры профиля (Создает клавиатуру для профиля в зависимости от статуса пользователя)
+    private InlineKeyboardMarkup createProfileKeyboard(User user) {
+        List<String> buttonTexts = new ArrayList<>();
+        List<String> callbackDatas = new ArrayList<>();
+
+        // Всегда добавляем кнопку "Назад"
+        buttonTexts.add("Назад");
+        callbackDatas.add(BACK_START);
+
+        // Добавляем VPN-кнопку только для подтвержденных платежей
+        if (user.getAction() == Action.PAYMENT_CONFIRMED) {
+            buttonTexts.add("Скачать VPN конфиг");
+            callbackDatas.add(GET_VPN_CONFIG);
+        }
+
+        // Создаем конфигурацию рядов (по 1 кнопке в каждом ряду)
+        List<Integer> rowLayout = new ArrayList<>();
+        for (int i = 0; i < buttonTexts.size(); i++) {
+            rowLayout.add(1);
+        }
+
+        return keyboardFactory.getInlineKeyboard(
+                buttonTexts,
+                rowLayout,
+                callbackDatas
+        );
+    }
+
+
     @Override
     public BotApiMethod<?> answerCommand(Message message, Bot bot) {
-        return showProfile(message);
+
+        Long chatId = message.getChatId();
+        StringBuilder text = new StringBuilder("\uD83D\uDC64 Профиль\n");
+
+        User user = userRepo.findById(chatId).orElseThrow();
+        var details = user.getDetails();
+
+        // Формирование текста профиля
+        if (details.getUsername() == null) {
+            text.append("\n▪\uFE0FИмя пользователя - ").append(details.getFirstName());
+        } else {
+            text.append("\n▪\uFE0FИмя пользователя - ").append(details.getUsername());
+        }
+        text.append("\n▪\uFE0FВаш id - ").append(details.getId());
+        text.append("\n▪\uFE0FДата регистрации - ").append(details.getRegisteredAt());
+        text.append("\n▪\uFE0FРоль - ").append(user.getRole().name());
+        text.append("\n▪\uFE0FПодписка - ").append(user.getAction().name());
+        text.append("\n▪\uFE0FВаш уникальный токен - \n").append(user.getToken().toString());
+        text.append("\n\n\uFE0F - токен нужен при обращении в тех поддержку, скопируйте и вставьте свой токен, далее опишите проблему при ее возникновении.");
+
+        return methodFactory.getSendMessage(
+                chatId,
+                text.toString(),
+                createProfileKeyboard(user)  // Используем общий метод для создания клавиатуры
+        );
+
+        //  return showProfile(message);
     }
 
 
@@ -49,9 +119,17 @@ public class ProfileManager extends AbstractManager {
 
     @Override
     public BotApiMethod<?> answerCallbackQuery(CallbackQuery callbackQuery, Bot bot) {
-        Long chatId = callbackQuery.getMessage().getChatId();
-        StringBuilder text = new StringBuilder("\uD83D\uDC64 Профиль\n");
 
+        String callbackData = callbackQuery.getData();
+        Long chatId = callbackQuery.getMessage().getChatId();
+
+        // Обработка запроса на получение VPN-конфига
+        if (GET_VPN_CONFIG.equals(callbackData)) {
+            return sendVpnConfig(chatId);
+        }
+
+        // Формирование текста профиля (аналогично методу answerCommand)
+        StringBuilder text = new StringBuilder("\uD83D\uDC64 Профиль\n");
         var user = userRepo.findById(chatId).orElseThrow();
         var details = user.getDetails();
 
@@ -67,31 +145,28 @@ public class ProfileManager extends AbstractManager {
         text.append("\n▪\uFE0FПодписка - ").append(user.getAction().name());
         text.append("\n▪\uFE0FВаш уникальный токен - \n").append(user.getToken().toString());
 
-        // Добавлена информация о подписке
-        text.append("\n\n\uD83D\uDCC5 Начало подписки: ");
-        text.append(user.getSubscriptionStartDate() != null ?
-                formatDate(user.getSubscriptionStartDate()) : "нет");
-
-        text.append("\n\uD83D\uDDD3 Окончание подписки: ");
-        text.append(user.getSubscriptionEndDate() != null ?
-                formatDate(user.getSubscriptionEndDate()) : "нет");
-
         text.append("\n\n\uFE0F - токен нужен при обращении в тех поддержку, скопируйте и вставьте свой токен, далее опишите проблему при ее возникновении.");
 
         return methodFactory.getEditeMessageText(
                 callbackQuery,
                 text.toString(),
-                keyboardFactory.getInlineKeyboard(
-                        List.of("Назад"),
-                        List.of(1),
-                        List.of(BACK_START)
-                )
+                createProfileKeyboard(user)  // Используем общий метод для создания клавиатуры
         );
+
     }
 
-    // Форматирование даты для отображения
-    private String formatDate(LocalDateTime date) {
-        return date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+    // Отправляет сообщение со ссылкой на VPN конфиг
+    private BotApiMethod<?> sendVpnConfig(Long chatId) {
+        return methodFactory.getSendMessage(
+                chatId,
+                "✅ Ваша конфигурация готова!\n" +
+                        "Скачайте файл: " + vpnConfigStubUrl + "\n\n" +
+                        "Инструкция по установке:\n" +
+                        "1. Скачайте приложение WireGuard\n" +
+                        "2. Импортируйте этот конфиг\n" +
+                        "3. Активируйте подключение",
+                null
+        );
     }
 
 

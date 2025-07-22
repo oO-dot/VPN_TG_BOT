@@ -1,10 +1,11 @@
 package com.example.vpn_bot.service.handler;
 
+import com.example.vpn_bot.service.admin.AdminManager;
 import com.example.vpn_bot.service.manager.change_period.ChangePeriodManager;
 import com.example.vpn_bot.service.manager.feedback.FeedbackManager;
 import com.example.vpn_bot.service.manager.help.HelpManager;
 import com.example.vpn_bot.service.manager.instruction.InstructionManager;
-import com.example.vpn_bot.service.manager.payment.TelegramPaymentManager;
+import com.example.vpn_bot.service.manager.payment.PaymentManager;
 import com.example.vpn_bot.service.manager.profile.ProfileManager;
 import com.example.vpn_bot.service.manager.start.StartManager;
 import com.example.vpn_bot.telegram.Bot;
@@ -26,7 +27,9 @@ public class CallbackQueryHandler {
     final ChangePeriodManager changePeriodManager;
     final StartManager startManager;
     final ProfileManager profileManager;
-    final TelegramPaymentManager telegramPaymentManager;
+    final PaymentManager paymentManager;
+    final AdminManager adminManager;
+
     @Autowired
     public CallbackQueryHandler(HelpManager helpManager,
                                 FeedbackManager feedbackManager,
@@ -34,19 +37,26 @@ public class CallbackQueryHandler {
                                 ChangePeriodManager changePeriodManager,
                                 StartManager startManager,
                                 ProfileManager profileManager,
-                                TelegramPaymentManager telegramPaymentManager) {
+                                PaymentManager paymentManager,
+                                AdminManager adminManager) {
         this.helpManager = helpManager;
         this.feedbackManager = feedbackManager;
         this.instructionManager = instructionManager;
         this.changePeriodManager = changePeriodManager;
         this.startManager = startManager;
         this.profileManager = profileManager;
-        this.telegramPaymentManager = telegramPaymentManager;
+        this.paymentManager = paymentManager;
+        this.adminManager = adminManager;
     }
 
     public BotApiMethod<?> answer(CallbackQuery callbackQuery, Bot bot) {
         String callbackData = callbackQuery.getData();
         // String keyWord = callbackData.split("_")[0];
+
+        // Обработка админских действий
+        if (callbackData.startsWith("ADMIN_")) {
+            return adminManager.answerCallbackQuery(callbackQuery, bot);
+        }
 
         switch (callbackData) {
             case FEEDBACK -> {
@@ -67,12 +77,18 @@ public class CallbackQueryHandler {
             case PROFILE -> {
                 return profileManager.answerCallbackQuery(callbackQuery, bot);
             }
-            // Обработка платежных кнопок
-            case CHANGE_PERIOD_1 , CHANGE_PERIOD_3,
-                 CHANGE_PERIOD_6, CHANGE_PERIOD_12 -> {
-                return telegramPaymentManager.answerCallbackQuery(callbackQuery, bot);
+            case PAYMENT_CONFIRMED -> {
+                return paymentManager.answerCallbackQuery(callbackQuery, bot);
+            }
+            case CHANGE_PERIOD_1, CHANGE_PERIOD_3, CHANGE_PERIOD_6, CHANGE_PERIOD_12 -> {
+                return changePeriodManager.answerCallbackQuery(callbackQuery, bot);
+            }
+            case GET_VPN_CONFIG -> {
+                return profileManager.answerCallbackQuery(callbackQuery, bot);
+            }
+            default -> {
+                return null;
             }
         }
-        return null;
     }
 }

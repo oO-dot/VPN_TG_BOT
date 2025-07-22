@@ -1,5 +1,6 @@
 package com.example.vpn_bot.entity.user;
 
+import com.example.vpn_bot.entity.partner.PartnerService;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -29,17 +30,29 @@ public class User {
     @Enumerated(EnumType.STRING)
     Action action;
 
-
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_details_id")
     UserDetails details;
 
-    // Добавлено для управления подписками
-    @Column(name = "subscription_start_date")
-    LocalDateTime subscriptionStartDate;
+    // Новые поля для системы оплаты
+    @Column(name = "selected_period")
+    Integer selectedPeriod; // Выбранный период подписки (в месяцах: 1, 3, 6, 12)
 
-    @Column(name = "subscription_end_date")
-    LocalDateTime subscriptionEndDate;
+    @Column(name = "payment_amount")
+    Double paymentAmount; // Сумма к оплате
+
+    @Column(name = "wallet_address")
+    String walletAddress; // Крипто-кошелек для оплаты
+
+    @Column(name = "subscription_end")
+    LocalDateTime subscriptionEnd; // Дата окончания подписки
+
+    @Column(name = "wireguard_config", columnDefinition = "TEXT")
+    private String wireguardConfig; // Хранение конфигурации
+
+    @ManyToOne
+    @JoinColumn(name = "partner_service_id")
+    private PartnerService partnerService;
 
     @PrePersist
     private void generateUniqueToken() {

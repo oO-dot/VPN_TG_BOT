@@ -16,5 +16,4 @@ public class TelegramProperties {
     String username;
     String token;
     String path;
-    String paymentToken; // токен на оплату в ТГ боте (Добавлено поле для хранения платежного токена)
 }
